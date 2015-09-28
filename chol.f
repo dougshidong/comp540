@@ -5,11 +5,11 @@
       IMPLICIT NONE
 
 
-      INTEGER                 :: I 
-      INTEGER, PARAMETER      :: N = 6
+      INTEGER                 :: I, IERR
+      INTEGER, PARAMETER      :: N = 8
       REAL(P), DIMENSION(N,N) :: A, L, LLTR
       REAL(P), DIMENSION(N)   :: B, E, X
-      REAL(P)                 :: NORM, FROB
+      REAL(P)                 :: FROB
 
 C     EXACT SOLUTION E
       E = 1.
@@ -28,7 +28,8 @@ C     SUCH THAT AE=B
         WRITE(*,*) B(I)
       ENDDO
 
-      CALL CHOL(A,N,L)
+      CALL CHOL(A,N,L,IERR)
+      IF(IERR.LT.0) STOP
 
       WRITE(*,*) 'L MATRIX'
       DO I = 1,N
@@ -49,10 +50,10 @@ C     SUCH THAT AE=B
       WRITE(*,*) 'RELATIVE ERROR IN THE SOLUTION:'
       WRITE(*,*) NORM2(X-E)/NORM2(X)
 
-      WRITE(*,*) 'RELATIVE RESIDUAL:',
+      WRITE(*,*) 'RELATIVE RESIDUAL:'
       WRITE(*,*) (NORM2(B-MATMUL(A,X)) / (FROB(A,N,N)/NORM2(X)))
 
-      WRITE(*,*) 'RELATIVE MATRIX RESIDUAL:',
+      WRITE(*,*) 'RELATIVE MATRIX RESIDUAL:'
       WRITE(*,*) FROB(A-LLTR,N,N)/FROB(A,N,N)
 
       END PROGRAM
@@ -69,10 +70,11 @@ C     CHOLESKY DECOMPOSITION OF SYMMETRIC POSITIVE DEFINITE MATRIX A
       INTEGER, INTENT(OUT) :: IERR
       REAL(P), INTENT(IN)  :: A(N,N)
       REAL(P), INTENT(OUT) :: L(N,N)
+      REAL(P), PARAMETER   :: TOL = 2e-7
       INTEGER              :: I,J
 
-      IERR = 0
       L = 0.
+      IERR = 0
       DO 10 J = 1,N
 C       DIAGONAL VALUES     
         L(J,J) = A(J,J)
@@ -81,13 +83,21 @@ C       DIAGONAL VALUES
 C       CATCH ERROR IF SQUARE-ROOTING NEGATIVE NUMBER
         IF(L(J,J).LT.0.) THEN
           WRITE(*,*) 'NEGATIVE SQUARE ROOT'
-          WRITE(*,*) 'J, L(I,I): ', J, L(J,J)
+          WRITE(*,*) 'I, L(I,I): ', J, L(J,J)
+          IERR = -1
+          EXIT
         ENDIF
 
         L(J,J)=SQRT(L(J,J))
-C  add an error catching if divide by
-C  0!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-c!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
+
+        IF(ABS(L(J,J)).LT.TOL)THEN
+          WRITE(*,*) 'L(J,J) IS CLOSE TO SINGLE PREC 0:'
+          WRITE(*,*) 'I, L(I,I): ', J, L(J,J)
+          IERR = -2
+          EXIT
+        ENDIF
+
+
 C       OFF-DIAGONAL VALUES
         DO 20 I = J+1,N
           L(I,J) =( A(I,J) - 
@@ -140,10 +150,10 @@ C     RETURNS FNORM
       REAL(P), INTENT(IN) :: A(M,N)
       REAL(P)             :: FNORM
       
-
+      FNORM = 0.
       DO J = 1,M  
       DO I = 1,N
-        FNORM = FNORM + A(I,J)**2
+        FNORM = FNORM + A(I,J)*A(I,J)
       ENDDO
       ENDDO
 
