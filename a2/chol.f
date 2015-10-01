@@ -6,7 +6,7 @@
 
 
       INTEGER                 :: I, IERR
-      INTEGER, PARAMETER      :: N = 8
+      INTEGER, PARAMETER      :: N = 6
       REAL(P), DIMENSION(N,N) :: A, L, LLTR
       REAL(P), DIMENSION(N)   :: B, E, X
       REAL(P)                 :: FROB
