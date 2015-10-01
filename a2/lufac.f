@@ -3,23 +3,29 @@
       USE PREC
       IMPLICIT NONE
 
-      INTEGER, PARAMETER        :: N=2
+      INTEGER, PARAMETER        :: N=30
       INTEGER                   :: I,J,K
       REAL(DP), DIMENSION (N,N) :: A0, A, L, U
       REAL(DP), DIMENSION (N)   :: B, E, X, PERM
 
-c      CALL ONESMATRIX(A0,N)
-
+      CALL ONESMATRIX(A0,N)
       DO I=1,N
-c        WRITE(*,*) A0(I,:)
+        A0(I,I) = A0(I,I) + 1.0E-8
       ENDDO
 
-      a = reshape((/ 0.001,1.,1.,0. /), shape(a))
+      E = 1.
+
+      B = MATMUL(A0,E)
+
       DO I=1,N
         WRITE(*,*) A(I,:)
       ENDDO
 
-      CALL LUFAC(N,A,L,U,PERM)
+      CALL LUFAC(N,A0,L,U,PERM)
+
+      
+      CALL SOLVELU(N,L,A0,B,X)
+      print *, x
       
       END PROGRAM
 
@@ -96,29 +102,6 @@ C       FACTORIZATION
 
         L(J,J) = 1.
     
-          print *,j
-          DO I=1,N
-            WRITE(*,*) A(I,:)
-          ENDDO
-
-      ENDDO
-      L(N,N) = 1.
-      print *,'a'
-      DO I=1,N
-        WRITE(*,*) A(I,:)
-      ENDDO
-      print *,'l'
-      DO I=1,N
-        WRITE(*,*) L(I,:)
-      ENDDO
-      print *,'u'
-      DO I=1,N
-        WRITE(*,*) U(I,:)
-      ENDDO
-      print *,'lu'
-      LU=MATMUL(L,A)
-      DO I=1,N
-        WRITE(*,*) LU(I,:)
       ENDDO
 
       END SUBROUTINE
@@ -141,3 +124,38 @@ C       FACTORIZATION
       ENDDO
 
       END
+      
+      SUBROUTINE SOLVELU(N,L,U,B,X)
+C     SOLVES LUX=B SYSTEM
+C     INPUT:
+C     N   -   SIZE OF MATRIX/VECTOR
+C     L   -   LOWER TRIANGULAR MATRIX
+C     U   -   UPPER TRIANGULAR MATRIX
+C     B   -   N X 1 VECTOR
+C     OUTPUT:
+C     X   -   N X 1 SOLUTION
+      USE PREC
+      INTEGER, INTENT(IN) :: N
+      REAL(DP), INTENT(IN) :: L(N,N), U(N,N), B(N)
+      REAL(DP), INTENT(OUT):: X(N)
+      REAL(DP)             :: Y(N)
+
+C     FORWARD SUBSTITUTION LY=B
+      DO I=1,N
+        Y(I) = B(I)
+        DO J=1,I-1
+          Y(I) = Y(I) - L(I,J) * Y(J)
+        ENDDO
+        Y(I) = Y(I) / L(I,I)
+      ENDDO
+
+C     BACK SUBSTITUTION UX=Y
+      DO I=N,1,-1
+        X(I) = Y(I)
+        DO J=I+1,N
+          X(I) = X(I) - U(I,J) * X(J)
+        ENDDO
+        X(I) = X(I) / U(I,I)
+      ENDDO
+
+      END SUBROUTINE
