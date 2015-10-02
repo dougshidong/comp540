@@ -3,30 +3,50 @@
       USE PREC
       IMPLICIT NONE
 
-      INTEGER, PARAMETER        :: N=30
+      INTEGER, PARAMETER        :: N=60
       INTEGER                   :: I,J,K
-      REAL(DP), DIMENSION (N,N) :: A0, A, L, U
-      REAL(DP), DIMENSION (N)   :: B, E, X, PERM
-
-      CALL ONESMATRIX(A0,N)
+      REAL(DP), DIMENSION (N,N) :: A, L, U, LU
+      REAL(DP), DIMENSION (N)   :: B, E, X
+      INTEGER, DIMENSION (N)    :: IPERM
+ 
+      CALL ONESMATRIX(A,N)
       DO I=1,N
-        A0(I,I) = A0(I,I) + 1.0E-8
+        A(I,I) = A(I,I) + 1.0E-8
       ENDDO
-
+c      CALL RANDOM_NUMBER(A)
       E = 1.
 
-      B = MATMUL(A0,E)
+      B = MATMUL(A,E)
 
+c      CALL PRINTARR(A,N)
+
+      CALL LUFAC(N,A,L,U,IPERM)
+
+      LU = MATMUL(L,U)
+      GOTO 10
+      WRITE(*,*) 'A'
+      CALL PRINTARR(A,N)
+      WRITE(*,*) 'L'
+      CALL PRINTARR(L,N)
+      WRITE(*,*) 'U'
+      CALL PRINTARR(U,N)
+      WRITE(*,*) 'LU'
+      CALL PRINTARR(LU,N)
+      WRITE(*,*) 'PERMUTATION'
+      WRITE(*,*) IPERM
+   10 CONTINUE
+
+      CALL PERMB(B,IPERM,N)
+      CALL SOLVELU(N,L,U,B,X)
+      
+      WRITE(*,*) 'X'
       DO I=1,N
-        WRITE(*,*) A(I,:)
+        WRITE(*,*) X(I)
       ENDDO
-
-      CALL LUFAC(N,A0,L,U,PERM)
-
+      WRITE(*,*) '||E-X|| / ||X||'
+      WRITE(*,*) MAXVAL(ABS(E(1:N)-X(1:N)))/MAXVAL(X)
       
-      CALL SOLVELU(N,L,A0,B,X)
-      print *, x
-      
+
       END PROGRAM
 
       SUBROUTINE ONESMATRIX(A,N)
@@ -53,61 +73,66 @@
 
       END SUBROUTINE
       
-      SUBROUTINE LUFAC(N, A, L, U, PERM)
+      SUBROUTINE LUFAC(N, A, L, U, IPERM)
 
       USE PREC
       
       IMPLICIT NONE
       
       INTEGER, INTENT(IN)        :: N
-      REAL(DP), INTENT(INOUT)    :: A(N,N)
-      REAL(DP), INTENT(OUT)      :: L(N,N), U(N,N), PERM(N)
-      real(dp)                   :: LU(N,N)
+      INTEGER, INTENT(OUT)       :: IPERM(N)
+      REAL(DP), INTENT(IN)       :: A(N,N)
+      REAL(DP), INTENT(OUT)      :: L(N,N), U(N,N)
       INTEGER                    :: I,J,K
       INTEGER                    :: IMAX
       REAL(DP)                   :: AMAX
 
+      IPERM = 0
       L = 0.
-      U = 0.
-      
+      U = A
+
+C     LOOP THROUGH COLUMNS   
       DO J=1,N-1
 
 C       PARTIAL PIVOTING
-        
-        AMAX = ABS(A(J,J))
+        AMAX = ABS(U(J,J))
         IMAX = J
+C       LOOP THROUGH ROWS TO FIND LARGEST PIVOT        
         DO I=J+1,N
-          IF(AMAX.LT.ABS(A(I,J))) THEN
-            AMAX = ABS(A(I,J))
+          IF(AMAX.LT.ABS(U(I,J))) THEN
+            AMAX = ABS(U(I,J))
             IMAX = I
           ENDIF
         ENDDO
-        PERM(J) = IMAX
+        IPERM(J) = IMAX
 
+C       SWAPPING ROWS
         IF(IMAX.NE.J) THEN
-          CALL SWAPARRAY(A(J,J:N), A(IMAX,J:N), N)
-          IF(J.GT.1) CALL SWAPARRAY(L(J,1:J-1), L(IMAX,1:J-1), N)
+          CALL SWAPARRAY(U(J,J:N), U(IMAX,J:N), N-J+1)
+          IF(J.GT.1) CALL SWAPARRAY(L(J,1:J-1), L(IMAX,1:J-1), J-1)
         ENDIF
 
 C       FACTORIZATION
-
         DO I=J+1,N
 
-          L(I,J) = A(I,J) / A(J,J)
-          A(I,J) = 0
+          L(I,J) = U(I,J) / U(J,J)
+          U(I,J) = 0.
           DO K=J+1,N
-            A(I,K) = A(I,K) - L(I,J) * A(J,K)
+            U(I,K) = U(I,K) - L(I,J) * U(J,K)
           ENDDO
         ENDDO
 
-        L(J,J) = 1.
-    
+      ENDDO
+
+C     DIAGONAL ENTRIES OF L ARE 1.0
+      DO I=1,N
+        L(I,I) = 1.0
       ENDDO
 
       END SUBROUTINE
 
       SUBROUTINE SWAPARRAY(A,B,NN)
-
+C     SWAP ELEMENTS OF ARRAY A AND B OF SIZE NN
       USE PREC
 
       IMPLICIT NONE
@@ -156,6 +181,30 @@ C     BACK SUBSTITUTION UX=Y
           X(I) = X(I) - U(I,J) * X(J)
         ENDDO
         X(I) = X(I) / U(I,I)
+      ENDDO
+
+      END SUBROUTINE
+     
+      SUBROUTINE PRINTARR(A,N)
+      USE PREC 
+      IMPLICIT REAL(DP)(A-H,O-Z)
+      DIMENSION  A(N,N)
+      DO I=1,N
+        WRITE(*,*) A(I,:)
+      ENDDO
+      WRITE(*,*)
+      ENDSUBROUTINE
+
+      SUBROUTINE PERMB(B,IPERM,N)
+      USE PREC 
+      IMPLICIT REAL(DP)(A-H,O-Z)
+      DIMENSION  B(N), IPERM(N)
+      DO I=1,N-1
+        IF(IPERM(I).NE.I) THEN
+          TEMP = B(I)
+          B(I) = B(IPERM(I))
+          B(IPERM(I)) = TEMP
+        ENDIF
       ENDDO
 
       END SUBROUTINE
