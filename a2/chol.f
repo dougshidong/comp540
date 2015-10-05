@@ -5,8 +5,8 @@
       IMPLICIT NONE
 
 
-      INTEGER                 :: I,IERR
-      INTEGER, PARAMETER      :: N = 8
+      INTEGER                  :: I,IERR
+      INTEGER, PARAMETER       :: N = 6
       REAL(P1), DIMENSION(N,N) :: A, L, LLTR
       REAL(P1), DIMENSION(N)   :: B, E, X
       REAL(P1)                 :: FROB
@@ -36,7 +36,11 @@ C     SUCH THAT AE=B
 
       X = 0.
       CALL SOLVELU(N,L,TRANSPOSE(L),B,X)
-      WRITE(*,*) 'SOLUTION X: ', X
+
+      WRITE(*,*) 'SOLUTION X: '
+      DO I=1,N
+        WRITE(*,*) X(I)
+      ENDDO
 
       WRITE(*,*) 'RELATIVE ERROR IN THE SOLUTION:'
       WRITE(*,*) NORM2(X-E)/NORM2(X)

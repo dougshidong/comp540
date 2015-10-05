@@ -3,7 +3,7 @@
       USE PREC
       IMPLICIT NONE
 
-      INTEGER, PARAMETER        :: N=6
+      INTEGER, PARAMETER        :: N=30
       INTEGER                   :: I
       REAL(P2), DIMENSION (N,N) :: A, L, U, LU
       REAL(P2), DIMENSION (N)   :: B, E, X, R, D
@@ -25,6 +25,7 @@ c      CALL PRINTARR(A,N)
 C     GROWTH FACTOR
       GFAC = MAXVAL(U)/MAXVAL(A)
       WRITE(*,*) 'GROWTH FACTOR: ', GFAC
+      WRITE(*,*) 
 
       LU = MATMUL(L,U)
       GOTO 10
@@ -40,23 +41,23 @@ C     GROWTH FACTOR
       WRITE(*,*) IPERM
    10 CONTINUE
 
-      WRITE(*,*) 'U'
-      CALL PRINTARR(U,N)
-
       CALL PERMB(B,IPERM,N)
       CALL SOLVELU(N,L,U,B,X)
       
-      WRITE(*,*) 'X'
+      WRITE(*,*) 'COMPUTED X'
       DO I=1,N
         WRITE(*,*) X(I)
       ENDDO
+      WRITE(*,*) 
+
       WRITE(*,*) '||E-X|| / ||X||'
       WRITE(*,*) MAXVAL(ABS(E(1:N)-X(1:N)))/MAXVAL(X)
+      WRITE(*,*) 
 
 C     ITERATIVE REFINEMENT
       TOL = 1E-15
-      DO I=1,10
-        WRITE(*,*) 'ITERATIVE REFINEMENT #', I
+      DO I=1,99
+        WRITE(*,'(A,I2)') 'ITERATIVE REFINEMENT #', I
         R = B - MATMUL(A, X)
         CALL SOLVELU(N,L,U,R,D)
         X = X + D
@@ -66,12 +67,12 @@ C     ITERATIVE REFINEMENT
         WRITE(*,*) MAXVAL(ABS(E(1:N)-X(1:N)))/MAXVAL(X)
         WRITE(*,*) '||D|| / ||X||'
         WRITE(*,*) IMPROV
-        
+        WRITE(*,*) 
         IF(IMPROV.LE.TOL) EXIT
 
       ENDDO
       
-      WRITE(*,*) 'X'
+      WRITE(*,'(A,I2,A)') 'X AFTER ',I,' REFINEMENTS:'
       DO I=1,N
         WRITE(*,*) X(I)
       ENDDO
