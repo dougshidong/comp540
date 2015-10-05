@@ -5,11 +5,11 @@
       IMPLICIT NONE
 
 
-      INTEGER                 :: I, IERR
-      INTEGER, PARAMETER      :: N = 6
-      REAL(P), DIMENSION(N,N) :: A, L, LLTR
-      REAL(P), DIMENSION(N)   :: B, E, X
-      REAL(P)                 :: FROB
+      INTEGER                 :: I,IERR
+      INTEGER, PARAMETER      :: N = 8
+      REAL(P1), DIMENSION(N,N) :: A, L, LLTR
+      REAL(P1), DIMENSION(N)   :: B, E, X
+      REAL(P1)                 :: FROB
 
 C     EXACT SOLUTION E
       E = 1.
@@ -18,30 +18,21 @@ C     SUCH THAT AE=B
       CALL INIT(A,E,B,N)
 
       WRITE(*,*) 'A MATRIX'
-      DO I = 1,N
-        WRITE(*,*) A(I,:)
-      ENDDO
-
+      CALL PRINTARR(A,N)
 
       WRITE(*,*) 'B MATRIX'
-      DO I = 1,N
-        WRITE(*,*) B(I)
-      ENDDO
+      CALL PRINTARR(B,N)
 
       CALL CHOL(A,N,L,IERR)
       IF(IERR.LT.0) STOP
 
       WRITE(*,*) 'L MATRIX'
-      DO I = 1,N
-        WRITE(*,*) L(I,:)
-      ENDDO
+      CALL PRINTARR(L,N)
         
       LLTR = MATMUL(L,TRANSPOSE(L))
 
       WRITE(*,*) 'LL^T MATRIX'
-      DO I = 1,N
-        WRITE(*,*) LLTR(I,:)
-      ENDDO
+      CALL PRINTARR(LLTR,N)
 
       X = 0.
       CALL SOLVELU(N,L,TRANSPOSE(L),B,X)
@@ -51,10 +42,10 @@ C     SUCH THAT AE=B
       WRITE(*,*) NORM2(X-E)/NORM2(X)
 
       WRITE(*,*) 'RELATIVE RESIDUAL:'
-      WRITE(*,*) (NORM2(B-MATMUL(A,X)) / (FROB(A,N,N)/NORM2(X)))
+      WRITE(*,*) NORM2(B-MATMUL(A,X)) / (FROB(A,N,N) * NORM2(X)) 
 
       WRITE(*,*) 'RELATIVE MATRIX RESIDUAL:'
-      WRITE(*,*) FROB(A-LLTR,N,N)/FROB(A,N,N)
+      WRITE(*,*) FROB(A-LLTR,N,N) / FROB(A,N,N)
 
       END PROGRAM
 
@@ -62,15 +53,23 @@ C     SUCH THAT AE=B
 C***********************************************************************
       SUBROUTINE CHOL(A,N,L,IERR)
 C     CHOLESKY DECOMPOSITION OF SYMMETRIC POSITIVE DEFINITE MATRIX A
+C     A = L*LT
+C     INPUT:
+C     N     -   SIZE OF MATRIX/VECTOR
+C     A     -   N X N MATRIX
+C     OUTPUT:
+C     L     -   LOWER TRIANGULAR MATRIX
+C     IERR  -   RETURNS NEGATIVE IF ERROR, ELSE RETURN 0
+
       USE PREC
 
       IMPLICIT NONE
 
       INTEGER, INTENT(IN)  :: N
       INTEGER, INTENT(OUT) :: IERR
-      REAL(P), INTENT(IN)  :: A(N,N)
-      REAL(P), INTENT(OUT) :: L(N,N)
-      REAL(P), PARAMETER   :: TOL = 2e-7
+      REAL(P1), INTENT(IN)  :: A(N,N)
+      REAL(P1), INTENT(OUT) :: L(N,N)
+      REAL(P1), PARAMETER   :: TOL = 2e-7
       INTEGER              :: I,J
 
       L = 0.
@@ -106,9 +105,8 @@ C       OFF-DIAGONAL VALUES
 
    10 CONTINUE
 
-
-
       END SUBROUTINE
+
 C***********************************************************************
       SUBROUTINE INIT(A,E,B,N)
 C     ****************************************
@@ -122,8 +120,8 @@ C     ****************************************
       IMPLICIT NONE
 
       INTEGER, INTENT(IN)    :: N
-      REAL(P), INTENT(IN)    :: E(N)
-      REAL(P), INTENT(OUT)   :: A(N,N), B(N)
+      REAL(P1), INTENT(IN)    :: E(N)
+      REAL(P1), INTENT(OUT)   :: A(N,N), B(N)
       INTEGER                :: I, J
 
       DO J = 1,N
@@ -139,7 +137,7 @@ c      A = MATMUL(C,TRANSPOSE(C))
       END SUBROUTINE
 
 C***********************************************************************
-      REAL(P) FUNCTION FROB(A,M,N)
+      REAL(P1) FUNCTION FROB(A,M,N)
 C     FROBENIUS NORM OF A, DIMENSION M X N
 C     RETURNS FNORM
       USE PREC
@@ -147,8 +145,8 @@ C     RETURNS FNORM
       IMPLICIT NONE
 
       INTEGER             :: M,N,I,J
-      REAL(P), INTENT(IN) :: A(M,N)
-      REAL(P)             :: FNORM
+      REAL(P1), INTENT(IN) :: A(M,N)
+      REAL(P1)             :: FNORM
       
       FNORM = 0.
       DO J = 1,M  
@@ -175,9 +173,9 @@ C     OUTPUT:
 C     X   -   N X 1 SOLUTION
       USE PREC
       INTEGER, INTENT(IN) :: N
-      REAL(P), INTENT(IN) :: L(N,N), U(N,N), B(N)
-      REAL(P), INTENT(OUT):: X(N)
-      REAL(P)             :: Y(N)
+      REAL(P1), INTENT(IN) :: L(N,N), U(N,N), B(N)
+      REAL(P1), INTENT(OUT):: X(N)
+      REAL(P1)             :: Y(N)
 
 C     FORWARD SUBSTITUTION LY=B
       DO I=1,N
@@ -198,7 +196,15 @@ C     BACK SUBSTITUTION UX=Y
       ENDDO
 
       END SUBROUTINE
-c      SUBROUTINE RELERR(X,E,)
-     
-
-c      END SUBROUTINE
+      
+C***********************************************************************
+      SUBROUTINE PRINTARR(A,N)
+C     PRINT ARRAY A WITH N ROWS       
+      USE PREC 
+      IMPLICIT REAL(P1)(A-H,O-Z)
+      DIMENSION  A(N,N)
+      DO I=1,N
+        WRITE(*,*) A(I,:)
+      ENDDO
+      WRITE(*,*)
+      ENDSUBROUTINE

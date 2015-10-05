@@ -3,17 +3,17 @@
       USE PREC
       IMPLICIT NONE
 
-      INTEGER, PARAMETER        :: N=60
-      INTEGER                   :: I,J,K
-      REAL(DP), DIMENSION (N,N) :: A, L, U, LU
-      REAL(DP), DIMENSION (N)   :: B, E, X
+      INTEGER, PARAMETER        :: N=6
+      INTEGER                   :: I
+      REAL(P2), DIMENSION (N,N) :: A, L, U, LU
+      REAL(P2), DIMENSION (N)   :: B, E, X, R, D
+      REAL(P2)                  :: GFAC, TOL, IMPROV
       INTEGER, DIMENSION (N)    :: IPERM
  
       CALL ONESMATRIX(A,N)
       DO I=1,N
         A(I,I) = A(I,I) + 1.0E-8
       ENDDO
-c      CALL RANDOM_NUMBER(A)
       E = 1.
 
       B = MATMUL(A,E)
@@ -21,6 +21,10 @@ c      CALL RANDOM_NUMBER(A)
 c      CALL PRINTARR(A,N)
 
       CALL LUFAC(N,A,L,U,IPERM)
+
+C     GROWTH FACTOR
+      GFAC = MAXVAL(U)/MAXVAL(A)
+      WRITE(*,*) 'GROWTH FACTOR: ', GFAC
 
       LU = MATMUL(L,U)
       GOTO 10
@@ -36,6 +40,9 @@ c      CALL PRINTARR(A,N)
       WRITE(*,*) IPERM
    10 CONTINUE
 
+      WRITE(*,*) 'U'
+      CALL PRINTARR(U,N)
+
       CALL PERMB(B,IPERM,N)
       CALL SOLVELU(N,L,U,B,X)
       
@@ -45,17 +52,40 @@ c      CALL PRINTARR(A,N)
       ENDDO
       WRITE(*,*) '||E-X|| / ||X||'
       WRITE(*,*) MAXVAL(ABS(E(1:N)-X(1:N)))/MAXVAL(X)
+
+C     ITERATIVE REFINEMENT
+      TOL = 1E-15
+      DO I=1,10
+        WRITE(*,*) 'ITERATIVE REFINEMENT #', I
+        R = B - MATMUL(A, X)
+        CALL SOLVELU(N,L,U,R,D)
+        X = X + D
+        IMPROV = NORM2(D) / NORM2(X)
+
+        WRITE(*,*) '||E-X|| / ||X||'
+        WRITE(*,*) MAXVAL(ABS(E(1:N)-X(1:N)))/MAXVAL(X)
+        WRITE(*,*) '||D|| / ||X||'
+        WRITE(*,*) IMPROV
+        
+        IF(IMPROV.LE.TOL) EXIT
+
+      ENDDO
       
+      WRITE(*,*) 'X'
+      DO I=1,N
+        WRITE(*,*) X(I)
+      ENDDO
 
       END PROGRAM
 
+C***********************************************************************
       SUBROUTINE ONESMATRIX(A,N)
 
       USE PREC
       IMPLICIT NONE
 
       INTEGER, INTENT(IN)     :: N
-      REAL(DP), INTENT(OUT)   :: A(N,N)
+      REAL(P2), INTENT(OUT)   :: A(N,N)
       INTEGER                 :: I,J
 
       A=0.
@@ -73,19 +103,28 @@ c      CALL PRINTARR(A,N)
 
       END SUBROUTINE
       
+C***********************************************************************
       SUBROUTINE LUFAC(N, A, L, U, IPERM)
-
+C     LU FACTORIZATION WITH PARTIAL PIVOTING
+C     LU = PA
+C     INPUT:
+C     N     -    SIZE OF MATRIX/VECTOR
+C     A     -    N X N MATRIX
+C     OUTPUT:
+C     L     -    LOWER TRIANGULAR MATRIX
+C     U     -    UPPER TRIANGULAR MATRIX
+C     IPERM -    PERMUTATION INDICES OF PERMUTATION MATRIX
       USE PREC
       
       IMPLICIT NONE
       
       INTEGER, INTENT(IN)        :: N
       INTEGER, INTENT(OUT)       :: IPERM(N)
-      REAL(DP), INTENT(IN)       :: A(N,N)
-      REAL(DP), INTENT(OUT)      :: L(N,N), U(N,N)
+      REAL(P2), INTENT(IN)       :: A(N,N)
+      REAL(P2), INTENT(OUT)      :: L(N,N), U(N,N)
       INTEGER                    :: I,J,K
       INTEGER                    :: IMAX
-      REAL(DP)                   :: AMAX
+      REAL(P2)                   :: AMAX
 
       IPERM = 0
       L = 0.
@@ -131,6 +170,7 @@ C     DIAGONAL ENTRIES OF L ARE 1.0
 
       END SUBROUTINE
 
+C***********************************************************************
       SUBROUTINE SWAPARRAY(A,B,NN)
 C     SWAP ELEMENTS OF ARRAY A AND B OF SIZE NN
       USE PREC
@@ -138,9 +178,9 @@ C     SWAP ELEMENTS OF ARRAY A AND B OF SIZE NN
       IMPLICIT NONE
 
       INTEGER, INTENT(IN)     :: NN
-      REAL(DP), INTENT(INOUT) :: A(NN),B(NN)
+      REAL(P2), INTENT(INOUT) :: A(NN),B(NN)
       INTEGER                 :: I
-      REAL(DP)                :: TEMP
+      REAL(P2)                :: TEMP
 
       DO I=1,NN
         TEMP = A(I)
@@ -150,6 +190,7 @@ C     SWAP ELEMENTS OF ARRAY A AND B OF SIZE NN
 
       END
       
+C***********************************************************************
       SUBROUTINE SOLVELU(N,L,U,B,X)
 C     SOLVES LUX=B SYSTEM
 C     INPUT:
@@ -161,9 +202,9 @@ C     OUTPUT:
 C     X   -   N X 1 SOLUTION
       USE PREC
       INTEGER, INTENT(IN) :: N
-      REAL(DP), INTENT(IN) :: L(N,N), U(N,N), B(N)
-      REAL(DP), INTENT(OUT):: X(N)
-      REAL(DP)             :: Y(N)
+      REAL(P2), INTENT(IN) :: L(N,N), U(N,N), B(N)
+      REAL(P2), INTENT(OUT):: X(N)
+      REAL(P2)             :: Y(N)
 
 C     FORWARD SUBSTITUTION LY=B
       DO I=1,N
@@ -185,19 +226,11 @@ C     BACK SUBSTITUTION UX=Y
 
       END SUBROUTINE
      
-      SUBROUTINE PRINTARR(A,N)
-      USE PREC 
-      IMPLICIT REAL(DP)(A-H,O-Z)
-      DIMENSION  A(N,N)
-      DO I=1,N
-        WRITE(*,*) A(I,:)
-      ENDDO
-      WRITE(*,*)
-      ENDSUBROUTINE
-
+C***********************************************************************
       SUBROUTINE PERMB(B,IPERM,N)
+C     PERMUTE THE ROWS OF B WITH IPERM      
       USE PREC 
-      IMPLICIT REAL(DP)(A-H,O-Z)
+      IMPLICIT REAL(P2)(A-H,O-Z)
       DIMENSION  B(N), IPERM(N)
       DO I=1,N-1
         IF(IPERM(I).NE.I) THEN
@@ -206,5 +239,17 @@ C     BACK SUBSTITUTION UX=Y
           B(IPERM(I)) = TEMP
         ENDIF
       ENDDO
-
       END SUBROUTINE
+
+C***********************************************************************
+      SUBROUTINE PRINTARR(A,N)
+C     PRINT ARRAY A WITH N ROWS 
+      USE PREC 
+      IMPLICIT REAL(P2)(A-H,O-Z)
+      DIMENSION  A(N,N)
+      DO I=1,N
+        WRITE(*,*) A(I,:)
+      ENDDO
+      WRITE(*,*)
+      ENDSUBROUTINE
+
