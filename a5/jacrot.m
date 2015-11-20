@@ -1,8 +1,11 @@
-function [ c1, s1, c2, s2, sig1, sig2 ] = kogbreduc( A )
+function [ c1, s1, c2, s2, sig1, sig2 ] = jacrot( A )
 % Given  2 x 2 matrix A, returns the SVD U^TAV = S
-% U = [c1 s1; -s1 c1]
-% V = [c2 s2; -s2 c2]
-% S = [sig1 0; 0 sig2]
+% U = [ c1 s1 ;
+%      -s1 c1 ]
+% V = [ c2 s2 ;
+%      -s2 c2]
+% S = [ sig1    0 ;
+%          0 sig2 ]
 
 w = A(1,1); x = A(1,2);
 y = A(2,1); z = A(2,2);
