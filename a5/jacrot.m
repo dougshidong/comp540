@@ -16,8 +16,8 @@ if(w + z == 0)
     s = 1;
 else
     t = ( x - y ) / ( w + z );
-    c = 1/sqrt(1 + t*t);
-    s = t*c;
+    c = 1 / sqrt(1 + t * t);
+    s = t * c;
 end
 
 wt = c * w - s * y;
