@@ -1,0 +1,162 @@
+
+\documentclass[letterpaper,12pt,]{article}
+
+\date{April 10, 2015}
+
+\usepackage{titling}
+
+\setlength{\droptitle}{5in}   % This is your set screw
+
+\usepackage[%
+    left=1in,%
+    right=1in,%
+    top=1in,%
+    bottom=1.0in,%
+    paperheight=11in,%
+    paperwidth=8.5in%
+]{geometry}%
+\usepackage{comment}
+
+\usepackage{listings}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage[section]{placeins}
+\usepackage[font=small,skip=-2pt]{caption}
+\usepackage{subcaption}
+\usepackage{hyperref}
+\usepackage{booktabs}
+
+\lstdefinestyle{mystyle}{
+    %backgroundcolor=\color{backcolour},   
+    %commentstyle=\color{codegreen},
+    %keywordstyle=\color{magenta},
+    %numberstyle=\tiny\color{codegray},
+    %stringstyle=\color{codepurple},
+    basicstyle=\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numberstyle=\footnotesize,               
+    stepnumber=1,
+    numbersep=5pt,
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2,
+    frame=single
+}
+\lstset{frame=single}
+
+\pagestyle{empty} % Remove page numbering
+\linespread{1.5} % Line Spacing
+
+\begin{document}
+
+\input{titlepage.tex}
+
+\section*{Question 1}
+
+\subsection*{Part 1}
+Letting $a_{1}(t) = 1$ and $a_{2}(t) = t$, the single precision condition number of $A$ is $\kappa_2(A)=8.6798010\text{\sc{e}+}02$. The norm of the residual of the least-square solution by the QR factorization method is $\|b-Ax_{qr}\|_2 = 8.0615806\text{\sc{e}-}05$.
+
+The condition number of the tranpose of $A$ with itself is $\kappa_{2}(A^{T}A) = 7.5613331\text{\sc{e}+}05$. The norm of the residual of the least-square solution by the normal equation is $\|b-Ax_{ne}\|_2 = 1.1265145\text{\sc{e}-}04$.
+
+Using double precision for the $A$ and the $b$ matrix least allows to compare the previous solutions with the true solution. All the solutions have been compiled in Table \ref{tab:r1}.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{cccc} \toprule
+    {} & {Single Precision QR} & {Single Precision NE} & {Double Precision QR}\\ \midrule
+    $x_1$ &	1.0167466 & 1.028004 & 1.016737195131018\\
+    $x_2$ &	0.9849972 & 0.9748591 & 0.985005503165425\\
+\bottomrule
+\end{tabular}
+\caption{Results for $a_{1}(t) = 1$ and $a_{2}(t) = t$}
+\label{tab:r1}
+\end{table}
+
+The single precision QR factorization is expected to give a better least-square solution than solving the normal equations. The condition number of $A^TA$ is three orders of magnitude bigger than the condition number of $A$. The QR factorization allows to retrieve up to 4 digits of accuracy, whereas the normal equation only retrieves 2 digits of the real solution.
+
+\subsection*{Part 2}
+
+Now, let $a_{1}(t) = 1$ and $a_{2}(t) = (t-1.11) \ast 100$. The single precision condition number of $A$ is $\kappa_2(A)=4.5301147$. The norm of the residual of the least-square solution by the QR factorization method is $\|b-Ax_{qr}\|_2 = 8.0615806\text{\sc{e}-}05$.
+
+The condition number of the tranpose of $A$ with itself is $\kappa_{2}(A^{T}A) = 20.5219326$. The norm of the residual of the least-square solution by the normal equation is $\|b-Ax_{ne}\|_2 = 8.0527971\text{\sc{e}-}05$.
+
+The single precision and double precision results have been compiled in Table \ref{tab:r2}.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{cccc} \toprule
+    {} & {Single Precision QR} & {Single Precision NE} & {Double Precision QR}\\ \midrule
+    $x_1$ &	2.1100941 & 2.1100929 & 2.110093286276619\\
+    $x_2$ &	0.0098492 & 0.0098508 & 0.009850104587809\\
+\bottomrule
+\end{tabular}
+\caption{Results for $a_{1}(t) = 1$ and $a_{2}(t) = (t-1.11) \ast 100$}
+\label{tab:r2}
+\end{table}
+
+The change of basis has improved the condition number of both $A$ and $A^TA$ by a few orders of magnitude. Therefore, both $x_{qr}$ and $x_{ne}$ are much closer to the real solution $x_{qr}$. Note that the resulting $x_2$ in this new basis is just a multiple of the $x_2$ from the first basis.
+
+\section*{Question 2}
+
+Handwritten derivations are attached.
+
+\section*{Question 3}
+
+The singular values and vectors of $B$ are shown below.
+\begin{equation*}
+\lambda_B = \{-0.026463896961605, 2.404909433839755, -35.134394975254480\}
+\end{equation*}
+\begin{equation*}
+U_B = 
+\begin{bmatrix}
+    0.6482 &  0.6737 &  0.3550 & -0.0000 &  0.0000\\
+    0.6237 & -0.3900 & -0.3986 & -0.5140 &  0.1893\\
+   -0.3149 &  0.0696 &  0.4427 & -0.5442 &  0.6355\\
+    0.0060 &  0.2508 & -0.4869 &  0.4535 &  0.7031\\
+    0.3028 & -0.5712 &  0.5310 &  0.4838 &  0.2569\\
+\end{bmatrix}
+\end{equation*}
+\begin{equation*}
+V_B = 
+\begin{bmatrix}
+    0.4183 &  0.8854 &  0.2026\\
+   -0.8137 &  0.2662 &  0.5167\\
+    0.4036 & -0.3810 &  0.8318\\
+\end{bmatrix}
+\end{equation*}
+In order to test for stability, every entry of $B$ has been perturbed by $1\textsc{e-}05$. The error of the singular value and vectors are given by $\|S_{pert}-S_{B}\|_2=6.8766\textsc{e-}06$, $\|U_{pert}-U_{B}\|_2=1.9715\textsc{e-}05$, and $\|V_{pert}-V_{B}\|_2=1.0605\textsc{e-}07$. This test does not prove stability of the algorithm since only mathematical derivations can, but it does support that the algorithm is \emph{probably} numerically stable since a small error in the input lead to small error in the solution.
+
+The SVD of A computed by MATLAB gives the following three singular values:
+\begin{equation*}
+\lambda_A = \{35.1272233335747, 2.46539669691652, 2.57621344955340\textsc{e-}16 \}
+\end{equation*}
+
+This shows that the $A$ matrix numerically has rank 3. However, it is easy to show that the columns of A are not linearly independent. Therefore, matrix $A$ mathematically has a rank of 2.
+
+To test the validity of the Moore-Penrose matrix, the following properties are checked:
+\begin{equation*}
+\|AGA - A\| = 0 \quad 
+\|GAG - G\| = 0 \quad 
+\|(AG)^T - AG\| = 0 \quad 
+\|(GA)^T - GA\| = 0
+\end{equation*}
+
+If we decide that the matrix 3 has full column rank, it is obvious that $\Sigma_1^{-1}$ blows up due to the small singular value. Therefore, none of the above test are satisfied and the resulting Moore-Penrose matrix is invalid.
+
+Instead, if we say that $A$ has rank 2 instead of 3, the Moore-Penrose matrix given by $G = V_1 \Sigma_1^{-1} U_1^T$ satisfies the above tests. Moreover, the \texttt{pinv} MATLAB command confirms the results obtained.
+
+The minimum 2-norm LS solution is given by $\hat{x} = Gb$. If rank 2 is chosen, $x_{LS2} = \[0.74, 0.20, -0.34]^T $ is the solution to the LS problem. However, if rank 3 is chosen, then 
+
+\section*{Codes}
+
+All codes are available on my GitHub:
+
+\url{https://github.com/dougshidong/comp540/tree/master/a5}
+
+
+\end{document}

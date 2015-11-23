@@ -29,7 +29,7 @@ while( sum(sum(abs(S))) - trace(abs( S(1 : n, 1 : n) )) > tol )
             ucj = s1 * U(:, i) + c1 * U(:, j);
             
             S(i, :) = sri;
-            S(j, :) = srj;
+               S(j, :) = srj;
             
             U(:, i) = uci;
             U(:, j) = ucj;

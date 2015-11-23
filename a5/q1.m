@@ -1,3 +1,5 @@
+%%
+clc;clear;
 n = 9;
 
 t = 1.11 * ones(n,1);
@@ -9,9 +11,9 @@ end
 
 b(1:3) = b(1:3) + 0.0001;
 
-A = [ones(n,1), t];
+A = [ones(n,1), t]
 
-A = single(A);
+A = single(A);          
 b = single(b);
 
 ka = cond(A)
@@ -28,9 +30,12 @@ res_ne = norm(b - A*xne)
 
 A = double(A);
 b = double(b);
-
+kab = cond(A)
 xdb = A\b
+res_db = norm(b - A*xdb)
 
+%%
+clear;clc;
 n = 9;
 
 t = 1.11 * ones(n,1);
@@ -44,8 +49,8 @@ b(1:3) = b(1:3) + 0.0001;
 
 A = [ones(n,1), t];
 
-A = single(A);
-b = single(b);
+A = single(A)
+b = single(b)
 
 ka = cond(A)
 
@@ -61,5 +66,6 @@ res_ne = norm(b - A*xne)
 
 A = double(A);
 b = double(b);
-
+kab = cond(A)
 xdb = A\b
+res_db = norm(b - A*xdb)
