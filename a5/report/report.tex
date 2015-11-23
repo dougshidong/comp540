@@ -1,7 +1,4 @@
-
 \documentclass[letterpaper,12pt,]{article}
-
-\date{April 10, 2015}
 
 \usepackage{titling}
 
@@ -63,7 +60,7 @@ Letting $a_{1}(t) = 1$ and $a_{2}(t) = t$, the single precision condition number
 
 The condition number of the tranpose of $A$ with itself is $\kappa_{2}(A^{T}A) = 7.5613331\text{\sc{e}+}05$. The norm of the residual of the least-square solution by the normal equation is $\|b-Ax_{ne}\|_2 = 1.1265145\text{\sc{e}-}04$.
 
-Using double precision for the $A$ and the $b$ matrix least allows to compare the previous solutions with the true solution. All the solutions have been compiled in Table \ref{tab:r1}.
+Using double precision for the $A$ and the $b$ matrix allows to compare the previous solutions with the true solution. All the solutions have been compiled in Table \ref{tab:r1}.
 
 \begin{table}[h]
 \centering
@@ -107,6 +104,8 @@ Handwritten derivations are attached.
 
 \section*{Question 3}
 
+\subsection*{Singular Value Decomposition}
+
 The singular values and vectors of $B$ are shown below.
 \begin{equation*}
 \lambda_B = \{-0.026463896961605, 2.404909433839755, -35.134394975254480\}
@@ -129,7 +128,11 @@ V_B =
     0.4036 & -0.3810 &  0.8318\\
 \end{bmatrix}
 \end{equation*}
+
+\subsection*{Stability}
 In order to test for stability, every entry of $B$ has been perturbed by $1\textsc{e-}05$. The error of the singular value and vectors are given by $\|S_{pert}-S_{B}\|_2=6.8766\textsc{e-}06$, $\|U_{pert}-U_{B}\|_2=1.9715\textsc{e-}05$, and $\|V_{pert}-V_{B}\|_2=1.0605\textsc{e-}07$. This test does not prove stability of the algorithm since only mathematical derivations can, but it does support that the algorithm is \emph{probably} numerically stable since a small error in the input lead to small error in the solution.
+
+\subsection*{Moore-Penrose Matrix and Rank}
 
 The SVD of A computed by MATLAB gives the following three singular values:
 \begin{equation*}
@@ -148,15 +151,28 @@ To test the validity of the Moore-Penrose matrix, the following properties are c
 
 If we decide that the matrix 3 has full column rank, it is obvious that $\Sigma_1^{-1}$ blows up due to the small singular value. Therefore, none of the above test are satisfied and the resulting Moore-Penrose matrix is invalid.
 
-Instead, if we say that $A$ has rank 2 instead of 3, the Moore-Penrose matrix given by $G = V_1 \Sigma_1^{-1} U_1^T$ satisfies the above tests. Moreover, the \texttt{pinv} MATLAB command confirms the results obtained.
+Instead, if we say that $A$ has rank 2 instead of 3 (by removing a column of the $A$ matrix), the Moore-Penrose matrix given by $G = V_1 \Sigma_1^{-1} U_1^T$ satisfies the above tests. Moreover, the \texttt{pinv} MATLAB command confirms the results obtained.
+\begin{equation*}
+G =
+\begin{bmatrix}
+    0.2467 & -0.1333 &  0.0200 &  0.0933 & -0.2067\\
+    0.0667 & -0.0333 & -0.0000 &  0.0333 & -0.0667\\
+   -0.1133 &  0.0667 & -0.0200 & -0.0267 &  0.0733\\
+\end{bmatrix}
+\end{equation*}
 
-The minimum 2-norm LS solution is given by $\hat{x} = Gb$. If rank 2 is chosen, $x_{LS2} = \[0.74, 0.20, -0.34]^T $ is the solution to the LS problem. However, if rank 3 is chosen, then 
+
+The minimum 2-norm LS solution is given by $\hat{x} = Gb$. If rank 2 is chosen, $x_{LS2} = \left[0.74, 0.20, -0.34\right]^T$ is the solution to the LS problem. However, if rank 3 is chosen, then the solution blows up to a huge number $x_{LS3} = \left[-3.64, 7.28, -3.64\right]^T \ast 10\textsc{e+}15$ due to the bad Moore-Penrose matrix obtained.
+
+With the MATLAB built-in solvers, it is the equivalent of comparing \texttt{pinv(A)*b} and \texttt{A\\b}. \texttt{pinv} finds the same Moore-Penrose matrix found earlier by assuming rank 2. The backslash solver however finds the solution $x_{LS2} = \left[0.84, 0, -0.24\right]^T$ and notifies the user of rank deficiency. Therefore, we see that the choice of the matrix rank can give different computational results.
 
 \section*{Codes}
 
 All codes are available on my GitHub:
 
 \url{https://github.com/dougshidong/comp540/tree/master/a5}
+
+More specifically \texttt{q1.m} corresponds to Question 1, \texttt{jacrot.m} to Question 3a, \texttt{SVDKog.m} to Question 3b and \texttt{q3.m} to the rest of everything else in Question 3.
 
 
 \end{document}
