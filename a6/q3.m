@@ -34,15 +34,27 @@ n = size(A,1);
 
 %% Iterate
 maxIt = 100000;
-tol = 1e-10;
+tol = 1e-6;
 Ak = A
-for i = 1:maxIt
+for it = 1 : maxIt
     [Qk, Rk] = qr(Ak);
     Ak = Rk*Qk;
-    lowTsum = sum(sum(abs(tril(Ak,-1))));
+    lowTsum = sum(sum(abs(tril(Ak,-1))))
     if lowTsum < tol;
         break
     end
 end
 
 Ak
+
+latexMat = sprintf(['begin{bmatrix}[r] \n']);
+for i = 1 : n
+    for j = 1 : n
+        latexEnt = sprintf('%f & ', Ak(i,j));
+        latexMat = sprintf([latexMat, latexEnt]);
+    end
+    latexMat = sprintf([latexMat,   '\n']);
+end
+latexMat = sprintf([latexMat,'\\end{bmatrix} \n']);
+
+latexMat
